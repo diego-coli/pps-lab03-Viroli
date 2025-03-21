@@ -16,7 +16,7 @@ object Sequences: // Essentially, generic linkedlists
       case _ => 0
 
     def map[A, B](l: Sequence[A])(mapper: A => B): Sequence[B] = l match
-      case Cons(h, t) => Cons(mapper(h), map(t)(mapper))
+      case Cons(h, t) => Cons(mapper(h), map(t)(mapper))    // ritorna una lista con head mappata e ricorsione su tail
       case Nil() => Nil()
 
     def filter[A](l1: Sequence[A])(pred: A => Boolean): Sequence[A] = l1 match
@@ -33,7 +33,9 @@ object Sequences: // Essentially, generic linkedlists
      * E.g., [10, 20, 30], 0 => [10, 20, 30]
      * E.g., [], 2 => []
      */
-    def skip[A](s: Sequence[A])(n: Int): Sequence[A] = ???
+    def skip[A](s: Sequence[A])(n: Int): Sequence[A] = s match
+      case Cons(h,t) if n > 0 => skip(t)(n-1) // finchè n > 0, skippa elementi scalando n
+      case _ => s                             // stampa ciò che rimane dopo aver skippato n elementi
 
     /*
      * Zip two sequences
@@ -41,7 +43,9 @@ object Sequences: // Essentially, generic linkedlists
      * E.g., [10], [] => []
      * E.g., [], [] => []
      */
-    def zip[A, B](first: Sequence[A], second: Sequence[B]): Sequence[(A, B)] = ???
+    def zip[A, B](first: Sequence[A], second: Sequence[B]): Sequence[(A, B)] = (first,second) match
+      case (Cons(h1,t1),Cons(h2,t2)) => Cons((h1,h2),zip(t1, t2)) // ritorna seq con head = (h1,h2) e tail = (t1,t2)
+      case _ => Nil()
 
     /*
      * Concatenate two sequences
@@ -49,7 +53,10 @@ object Sequences: // Essentially, generic linkedlists
      * E.g., [10], [] => [10]
      * E.g., [], [] => []
      */
-    def concat[A](s1: Sequence[A], s2: Sequence[A]): Sequence[A] = ???
+    def concat[A](s1: Sequence[A], s2: Sequence[A]): Sequence[A] = s1 match
+      case Cons(h1, t1) => Cons(h1, concat(t1, s2)) // ritorna seq con head = h1 e tail = concat del resto
+      case Nil() => s2                              // caso base = s1 nil
+
 
     /*
      * Reverse the sequence
@@ -57,7 +64,15 @@ object Sequences: // Essentially, generic linkedlists
      * E.g., [10] => [10]
      * E.g., [] => []
      */
-    def reverse[A](s: Sequence[A]): Sequence[A] = ???
+    def reverse[A](s: Sequence[A]): Sequence[A] =
+      def help(remaining: Sequence[A], reverse: Sequence[A]): Sequence[A] = remaining match
+        case Nil() => reverse
+        case Cons(h, t) =>
+          val accumulator = Cons(h, reverse)
+          help(t, accumulator)
+
+      help(s, Nil())
+
 
     /*
      * Map the elements of the sequence to a new sequence and flatten the result
@@ -65,7 +80,9 @@ object Sequences: // Essentially, generic linkedlists
      * E.g., [10, 20, 30], calling with mapper(v => [v]) returns [10, 20, 30]
      * E.g., [10, 20, 30], calling with mapper(v => Nil()) returns []
      */
-    def flatMap[A, B](s: Sequence[A])(mapper: A => Sequence[B]): Sequence[B] = ???
+    def flatMap[A, B](s: Sequence[A])(mapper: A => Sequence[B]): Sequence[B] = s match
+      case Cons(h, t) => concat(mapper(h), flatMap(t)(mapper))  // ritorna concat tra head mappata e ricorsione con tail mappata
+      case Nil() => Nil()
 
     /*
      * Get the minimum element in the sequence
